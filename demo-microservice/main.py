@@ -6,10 +6,10 @@ import json
 
 app = FastAPI()
 
-# Load environment variables (set via Docker or GCP Cloud Run)
-BUCKET_NAME = "simple-assignment-bucket"
-PUBSUB_TOPIC = "simple-topic"
-PROJECT_ID = "my-app-361806"
+# Load environment variables 
+BUCKET_NAME = os.getenv("BUCKET_NAME")
+PUBSUB_TOPIC = os.getenv("PUBSUB_TOPIC")
+PROJECT_ID = os.getenv("PROJECT_ID")
 
 # Google Cloud Storage client
 storage_client = storage.Client()
@@ -19,27 +19,27 @@ bucket = storage_client.get_bucket(BUCKET_NAME)
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(PROJECT_ID, PUBSUB_TOPIC)
 
-# Pydantic model to validate the incoming JSON payload
+# Validate the incoming JSON payload
 class Message(BaseModel):
     message: str
 
 @app.post("/receive")
 async def receive_message(payload: Message):
     try:
-        # 1. Save the JSON payload to a file in the cloud storage bucket
+        # Save to cloud storage bucket
         blob = bucket.blob(f"{payload.message}.json")
         blob.upload_from_string(json.dumps(payload.dict()), content_type="application/json")
         
-        # 2. Publish the message to a Pub/Sub topic
+        # Publish the message to a Pub/Sub topic
         future = publisher.publish(topic_path, data=payload.message.encode("utf-8"))
-        future.result()  # Ensure the publish succeeded
+        future.result()  
 
         return {"status": "Message received and processed successfully."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Health check endpoint
+# Health check
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
