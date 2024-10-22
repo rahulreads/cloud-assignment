@@ -1,9 +1,16 @@
 
 # Take Home Assignment 
 
+# Solution
+
+We will run the stateless application in Cloud run. It is easier to run stateless services on Cloud Run. It is serverless and fits well for scenarios where you are only using the service not so frequently. 
+
 
 ## Terraform scripts 
-This Terraform configuration deploys a stateless microservice to Google Cloud Run, provisions a Google Cloud Storage bucket for file storage, and sets up a Pub/Sub topic for message publishing.
+The terraform scripts can be found in the repository to set up the following
+1. Set up Cloud Storage bucket
+2. Create a Pub/Sub topic
+3. Create a Cloud Run service
 
 ## Prerequisites
 
@@ -49,13 +56,13 @@ terraform apply
 ```
 
 This command will create the following resources:
-- A Cloud Run service
-- A Cloud Storage bucket
-- A Pub/Sub topic
+-  Cloud Storage bucket
+-  Pub/Sub topic
+-  Cloud Run service
 
 ### 5. Deploy the Docker Image
 
-Once the infrastructure is set up, you need to deploy the microservice Docker image to Google Cloud Container Registry (GCR). First, build and push the image:
+Once the infrastructure is set up, you need to deploy the microservice Docker image to Google Cloud Artifact Registy . First, build and push the image:
 
 ```bash
 docker build -t gcr.io/<project-id>/microservice:latest .
@@ -68,7 +75,6 @@ After successful deployment, Terraform will output the URL of the Cloud Run serv
 
 ## Testing
 
-You can test the HTTP endpoint of the microservice by sending a JSON payload using `curl`:
 
 ```bash
 curl -X POST <cloud_run_service_url>/receive \
@@ -76,7 +82,7 @@ curl -X POST <cloud_run_service_url>/receive \
 -d '{"message": "Hello World"}'
 ```
 
-This will send a POST request to the `/receive` endpoint, where the microservice will handle the request by writing to the Cloud Storage bucket and publishing a message to the Pub/Sub topic.
+This will send a POST request to the `/receive` endpoint, The JSON data will be store to cloud storage bucket and a notification is sent to pub/sub.
 
 ### 7. Destroy the resources
 
